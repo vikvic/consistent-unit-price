@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Consistent Unit Price",
+  "description": "Compare products with a consistent weight-based unit price.",
+  "version": "0.1.0",
+  "permissions": ["storage"],
+  "action": {
+    "default_title": "Consistent Unit Price",
+    "default_popup": "popup/index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.amazon.com/*",
+        "https://*.walmart.com/*"
+      ],
+      "js": ["content/index.js"],
+      "css": ["content/styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "consistent-unit-price@example.invalid",
+      "strict_min_version": "109.0"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "consistent-unit-price",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run typecheck && npm run build:chrome && npm run build:firefox",
+    "build:chrome": "node scripts/build.mjs chrome",
+    "build:firefox": "node scripts/build.mjs firefox",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "esbuild": "^0.25.1",
+    "typescript": "^5.7.3"
+  }
+}

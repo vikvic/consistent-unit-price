@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consistent Unit Price</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="../content/styles.css">
+  </head>
+  <body>
+    <main class="cup-popup">
+      <header class="cup-popup__header">
+        <p class="cup-popup__eyebrow">Browser extension</p>
+        <h1>Consistent Unit Price</h1>
+        <p>Compare weight-based prices in one format.</p>
+      </header>
+
+      <section class="cup-popup__section" aria-labelledby="settings-heading">
+        <h2 id="settings-heading">Preferences</h2>
+
+        <fieldset class="cup-choice-group">
+          <legend>Preferred unit-price format</legend>
+          <div id="preferred-format-options" class="cup-choice-grid"></div>
+        </fieldset>
+
+        <fieldset class="cup-choice-group">
+          <legend>Walmart display style</legend>
+          <div id="display-style-options" class="cup-choice-grid cup-choice-grid--display">
+            <label class="cup-choice">
+              <input name="displayStyle" type="radio" value="label">
+              <span>Add label below</span>
+            </label>
+            <label class="cup-choice">
+              <input name="displayStyle" type="radio" value="overlay">
+              <span>Overlay retailer unit price</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="cup-toggle-group">
+          <legend>Enabled sites</legend>
+          <label class="cup-toggle" for="amazon-enabled">
+            <input id="amazon-enabled" type="checkbox">
+            <span>Amazon</span>
+          </label>
+          <label class="cup-toggle" for="walmart-enabled">
+            <input id="walmart-enabled" type="checkbox">
+            <span>Walmart</span>
+          </label>
+        </fieldset>
+
+        <p id="settings-status" class="cup-popup__status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="cup-popup__section" aria-labelledby="calculator-heading">
+        <h2 id="calculator-heading">Manual calculator</h2>
+        <p class="cup-popup__hint">
+          Manual values are used only for this calculation and are never saved as product data.
+          When Automatic format is selected, this calculator uses your last manual format.
+        </p>
+
+        <form id="manual-calculator">
+          <label class="cup-field" for="manual-price">
+            <span>Price in dollars</span>
+            <input
+              id="manual-price"
+              name="price"
+              type="number"
+              min="0.01"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="6.00"
+              required
+            >
+          </label>
+
+          <label class="cup-field" for="manual-quantity">
+            <span>Weight quantity</span>
+            <input
+              id="manual-quantity"
+              name="quantity"
+              type="text"
+              placeholder="12 oz or 4 x 8 oz"
+              aria-describedby="quantity-help"
+              required
+            >
+          </label>
+          <p id="quantity-help" class="cup-popup__hint">
+            Accepted weight units: oz, lb, g, and kg. Volume measurements such as fl oz are unavailable.
+          </p>
+
+          <button type="submit">Calculate</button>
+        </form>
+
+        <section id="manual-output" class="cup-manual-output" aria-labelledby="manual-result-heading" hidden>
+          <h3 id="manual-result-heading">Manual result</h3>
+          <p id="manual-result" class="cup-manual-output__result" role="status" aria-live="polite"></p>
+          <details>
+            <summary>Calculation details</summary>
+            <dl>
+              <div><dt>Price</dt><dd id="manual-detail-price"></dd></div>
+              <div><dt>Quantity</dt><dd id="manual-detail-quantity"></dd></div>
+              <div><dt>Format</dt><dd id="manual-detail-format"></dd></div>
+            </dl>
+          </details>
+        </section>
+      </section>
+
+      <section class="cup-popup__section" aria-labelledby="preview-heading">
+        <h2 id="preview-heading">Automatic-label preview</h2>
+        <p class="cup-popup__hint">
+          This is a static accessibility preview. Retailer readers are not implemented yet.
+        </p>
+        <div id="automatic-preview"></div>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
