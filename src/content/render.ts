@@ -9,6 +9,10 @@ export interface UnitPriceOverlay {
   originalInlinePosition: string;
 }
 
+export interface UnitPriceOverlayOptions {
+  converted?: boolean;
+}
+
 export interface UnitPriceRenderDetails {
   priceText: string;
   quantityText: string;
@@ -107,17 +111,51 @@ function normalizedText(value: string | null): string {
   return (value ?? "").replace(/\s+/g, " ").trim();
 }
 
+function renderedArea(element: HTMLElement): number {
+  // aria-hidden affects the accessibility tree, not visual rendering. Walmart's
+  // visible price row is aria-hidden because it has a separate screen-reader label.
+  if (!element.isConnected || element.closest("[hidden]")) {
+    return 0;
+  }
+
+  let current: HTMLElement | null = element;
+  while (current) {
+    const style = getComputedStyle(current);
+    if (
+      style.display === "none" ||
+      style.visibility === "hidden" ||
+      style.visibility === "collapse" ||
+      style.opacity === "0" ||
+      (style.clip !== "auto" && style.clip !== "") ||
+      (style.clipPath !== "none" && style.clipPath !== "")
+    ) {
+      return 0;
+    }
+    current = current.parentElement;
+  }
+
+  return Array.from(element.getClientRects()).reduce(
+    (largest, rect) => Math.max(largest, rect.width * rect.height),
+    0
+  );
+}
+
 export function overlayUnitPriceText(
   host: HTMLElement,
   originalUnitPrice: string,
-  convertedUnitPrice: string
+  displayedUnitPrice: string,
+  options: UnitPriceOverlayOptions = {}
 ): UnitPriceOverlay | undefined {
   const original = normalizedText(originalUnitPrice);
   const candidates = [host, ...host.querySelectorAll<HTMLElement>("*")]
     .filter((element) => !element.closest(`[${ROOT_ATTRIBUTE}]`))
     .filter((element) => normalizedText(element.textContent) === original)
-    .sort((left, right) => left.childElementCount - right.childElementCount);
-  const element = candidates[0];
+    .map((element) => ({ element, area: renderedArea(element) }))
+    .filter((candidate) => candidate.area > 4)
+    .sort((left, right) =>
+      right.area - left.area || left.element.childElementCount - right.element.childElementCount
+    );
+  const element = candidates[0]?.element;
   if (!element) {
     return undefined;
   }
@@ -131,10 +169,23 @@ export function overlayUnitPriceText(
   const overlay = document.createElement("span");
   overlay.className = "cup-unit-price-overlay";
   overlay.setAttribute(ROOT_ATTRIBUTE, "");
-  overlay.setAttribute("aria-label", `Converted unit price ${convertedUnitPrice}`);
-  overlay.title = "Converted by Consistent Unit Price";
-  overlay.textContent = convertedUnitPrice;
+  const converted = options.converted ?? true;
+  overlay.setAttribute(
+    "aria-label",
+    converted ? `Converted unit price ${displayedUnitPrice}` : `Unit price ${displayedUnitPrice}`
+  );
+  overlay.title = converted
+    ? "Converted by Consistent Unit Price"
+    : "Standardized by Consistent Unit Price";
+  overlay.textContent = displayedUnitPrice;
   element.append(overlay);
+
+  if (renderedArea(overlay) <= 4) {
+    overlay.remove();
+    element.style.position = originalInlinePosition;
+    element.removeAttribute(OVERLAY_ANCHOR_ATTRIBUTE);
+    return undefined;
+  }
 
   return { element, overlay, originalInlinePosition };
 }

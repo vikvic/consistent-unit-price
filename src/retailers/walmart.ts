@@ -61,7 +61,10 @@ interface QuantitySelection {
 }
 
 function isVisible(element: HTMLElement): boolean {
-  if (!element.isConnected || element.closest('[aria-hidden="true"], [hidden]')) {
+  // aria-hidden only removes content from the accessibility tree. Walmart's
+  // visually rendered price row is aria-hidden because a separate a11y label
+  // announces the same price.
+  if (!element.isConnected || element.closest("[hidden]")) {
     return false;
   }
   let candidate: HTMLElement | null = element;

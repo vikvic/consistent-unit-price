@@ -59,15 +59,13 @@ const WALMART_ADAPTER: RetailerAdapter = {
 const knownScopes = new Set<HTMLElement>();
 const renderedHostByScope = new WeakMap<HTMLElement, HTMLElement>();
 const overlayByScope = new Map<HTMLElement, UnitPriceOverlay>();
-const walmartDiagnosticByScope = new WeakMap<HTMLElement, string>();
+const walmartConversionDiagnosticsByScope = new WeakMap<HTMLElement, Set<string>>();
 let stopObserving: (() => void) | undefined;
 let currentPreferredFormat: DisplayFormat = DEFAULT_SETTINGS.preferredFormat;
 let currentFormat: DisplayFormat = DEFAULT_SETTINGS.preferredFormat;
 let currentFormatMode: FormatMode = DEFAULT_SETTINGS.formatMode;
 let currentDisplayStyle: DisplayStyle = DEFAULT_SETTINGS.displayStyle;
 let activeAdapter: RetailerAdapter | undefined;
-let walmartSettingsDiagnostic = "";
-let walmartAutomaticFormatDiagnostic = "";
 
 function resolveAutomaticFormat(): boolean {
   if (activeAdapter !== WALMART_ADAPTER || currentFormatMode !== "automatic") {
@@ -89,75 +87,34 @@ function resolveAutomaticFormat(): boolean {
   const changed = resolvedFormat !== currentFormat;
   currentFormat = resolvedFormat;
 
-  const countDetails = Object.fromEntries(counts.entries());
-  const diagnostic = JSON.stringify({ countDetails, resolvedFormat, tied: winners.length > 1 });
-  if (diagnostic !== walmartAutomaticFormatDiagnostic) {
-    walmartAutomaticFormatDiagnostic = diagnostic;
-    console.info("[CUP][Walmart] automatic format selected", {
-      formatCounts: countDetails,
-      selectedFormat: resolvedFormat,
-      fallbackUsed: winners.length !== 1,
-      loadedUnitPriceCount: formats.length
-    });
-  }
   return changed;
 }
 
-function walmartElementPath(element: Element | undefined): Array<Record<string, string>> {
-  const path: Array<Record<string, string>> = [];
-  let current: Element | null = element ?? null;
-  while (current && path.length < 8) {
-    const marker: Record<string, string> = { tag: current.tagName.toLowerCase() };
-    for (const attribute of ["data-item-id", "data-testid", "data-test-id", "data-automation-id", "role"]) {
-      const value = current.getAttribute(attribute);
-      if (value) marker[attribute] = value;
-    }
-    if (current.id) marker.id = current.id;
-    path.push(marker);
-    current = current.parentElement;
-  }
-  return path;
-}
-
-function walmartDomInventory(): Record<string, unknown> {
-  const itemScopes = Array.from(document.querySelectorAll<HTMLElement>("[data-item-id]"));
-  const titles = Array.from(document.querySelectorAll<HTMLElement>('[data-automation-id="product-title"]'));
-  const legacyPrices = Array.from(document.querySelectorAll<HTMLElement>('[data-automation-id="product-price"]'));
-  const unifiedPrices = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="unified-global-product-price"]'));
-  const prices = Array.from(new Set([...legacyPrices, ...unifiedPrices]));
-  const visible = (element: HTMLElement): boolean => element.getClientRects().length > 0;
-  const sampleTitle = titles.find(visible) ?? titles[0];
-  const samplePrice = prices.find(visible) ?? prices[0];
-  return {
-    itemIdCount: itemScopes.length,
-    productTitleCount: titles.length,
-    visibleProductTitleCount: titles.filter(visible).length,
-    productPriceCount: prices.length,
-    legacyProductPriceCount: legacyPrices.length,
-    unifiedProductPriceCount: unifiedPrices.length,
-    visibleProductPriceCount: prices.filter(visible).length,
-    sampleTitle: sampleTitle?.textContent?.replace(/\s+/g, " ").trim().slice(0, 160) ?? "Not found",
-    sampleTitleAncestors: walmartElementPath(sampleTitle),
-    samplePriceAncestors: walmartElementPath(samplePrice)
-  };
-}
-
-function logWalmartDiagnostic(
+function logWalmartConversion(
   scope: HTMLElement,
-  event: string,
-  details: Record<string, unknown>,
-  level: "info" | "warn" = "info"
+  details: {
+    originalUnitPrice: string;
+    convertedUnitPrice: string;
+    displayStyle: DisplayStyle;
+    item?: string;
+  }
 ): void {
   if (activeAdapter !== WALMART_ADAPTER) {
     return;
   }
 
-  const signature = JSON.stringify([event, details]);
-  if (walmartDiagnosticByScope.get(scope) === signature) {
+  const signature = JSON.stringify(details);
+  const signatures = walmartConversionDiagnosticsByScope.get(scope) ?? new Set<string>();
+  if (signatures.has(signature)) {
     return;
   }
-  walmartDiagnosticByScope.set(scope, signature);
-  console[level](`[CUP][Walmart] ${event}`, details);
+  signatures.add(signature);
+  walmartConversionDiagnosticsByScope.set(scope, signatures);
+
+  console.info(
+    `[CUP][Walmart][Conversion] original=${JSON.stringify(details.originalUnitPrice)} converted=${JSON.stringify(details.convertedUnitPrice)} display=${details.displayStyle}`,
+    details
+  );
 }
 
 function adapterForPage(): RetailerAdapter | undefined {
@@ -246,25 +203,26 @@ function processScope(scope: HTMLElement): void {
 
   const extraction = activeAdapter.extract(scope);
   if (!extraction.host || !extraction.host.isConnected) {
-    logWalmartDiagnostic(scope, "product found but no price-label host was available", {
-      item: extraction.productName ?? "Unknown item",
-      originalPrice: extraction.priceText,
-      quantity: extraction.quantityText,
-      preferredFormat: currentFormat,
-      reason: extraction.unavailableReason ?? "Missing render host"
-    }, "warn");
     return;
   }
 
   const result = calculate(extraction);
   if (result.available && extraction.storeDisplayedUnitFormat === result.format) {
-    logWalmartDiagnostic(scope, "no conversion needed", {
-      item: extraction.productName ?? "Unknown item",
-      originalUnitPrice: extraction.storeDisplayedUnitPriceText ?? "Not found",
-      convertedUnitPrice: result.label,
-      preferredFormat: result.format,
-      reason: "Walmart already displays the preferred denomination"
-    });
+    if (
+      activeAdapter === WALMART_ADAPTER &&
+      currentDisplayStyle === "overlay" &&
+      extraction.storeDisplayedUnitPriceText
+    ) {
+      const unitPriceOverlay = overlayUnitPriceText(
+        extraction.host,
+        extraction.storeDisplayedUnitPriceText,
+        extraction.storeDisplayedUnitPriceText,
+        { converted: false }
+      );
+      if (unitPriceOverlay) {
+        overlayByScope.set(scope, unitPriceOverlay);
+      }
+    }
     return;
   }
 
@@ -277,39 +235,13 @@ function processScope(scope: HTMLElement): void {
       );
       if (unitPriceOverlay) {
         overlayByScope.set(scope, unitPriceOverlay);
-        logWalmartDiagnostic(scope, "unit price overlaid", {
+        logWalmartConversion(scope, {
           item: extraction.productName ?? "Unknown item",
           originalUnitPrice: extraction.storeDisplayedUnitPriceText,
           convertedUnitPrice: result.label,
-          preferredFormat: result.format,
           displayStyle: currentDisplayStyle
         });
-      } else {
-        logWalmartDiagnostic(scope, "unit price overlay target not found", {
-          item: extraction.productName ?? "Unknown item",
-          originalUnitPrice: extraction.storeDisplayedUnitPriceText,
-          convertedUnitPrice: result.label,
-          preferredFormat: result.format,
-          displayStyle: currentDisplayStyle
-        }, "warn");
       }
-    } else if (!result.available) {
-      logWalmartDiagnostic(scope, "unit price left unchanged", {
-        item: extraction.productName ?? "Unknown item",
-        originalUnitPrice: extraction.storeDisplayedUnitPriceText ?? "Not found",
-        preferredFormat: result.format,
-        displayStyle: currentDisplayStyle,
-        reason: result.label
-      }, "warn");
-    } else {
-      logWalmartDiagnostic(scope, "unit price left unchanged", {
-        item: extraction.productName ?? "Unknown item",
-        originalUnitPrice: "Not found",
-        convertedUnitPrice: result.label,
-        preferredFormat: result.format,
-        displayStyle: currentDisplayStyle,
-        reason: "No retailer unit-price text was available to overlay"
-      }, "warn");
     }
     return;
   }
@@ -329,27 +261,14 @@ function processScope(scope: HTMLElement): void {
 
   const badgeInserted = Boolean(extraction.host.querySelector("[data-cup-root]"));
   if (result.available) {
-    logWalmartDiagnostic(scope, extraction.storeDisplayedUnitPriceText
-      ? "conversion needed"
-      : "unit price calculated without a Walmart unit-price label", {
-      item: extraction.productName ?? "Unknown item",
-      originalUnitPrice: extraction.storeDisplayedUnitPriceText ?? "Not found",
-      originalPrice: extraction.priceText,
-      quantity: extraction.quantityText,
-      convertedUnitPrice: result.label,
-      preferredFormat: result.format,
-      badgeInserted
-    }, badgeInserted ? "info" : "warn");
-  } else {
-    logWalmartDiagnostic(scope, "unit price unavailable", {
-      item: extraction.productName ?? "Unknown item",
-      originalUnitPrice: extraction.storeDisplayedUnitPriceText ?? "Not found",
-      originalPrice: extraction.priceText,
-      quantity: extraction.quantityText,
-      preferredFormat: result.format,
-      reason: result.label,
-      badgeInserted
-    }, "warn");
+    if (badgeInserted) {
+      logWalmartConversion(scope, {
+        item: extraction.productName ?? "Unknown item",
+        originalUnitPrice: extraction.storeDisplayedUnitPriceText ?? "Not found",
+        convertedUnitPrice: result.label,
+        displayStyle: currentDisplayStyle
+      });
+    }
   }
 }
 
@@ -396,27 +315,6 @@ function applySettings(settings: ExtensionSettings): void {
   currentDisplayStyle = settings.displayStyle;
   const adapter = adapterForPage();
 
-  if (adapter === WALMART_ADAPTER) {
-    const diagnostic = JSON.stringify({
-      preferredFormat: settings.preferredFormat,
-      formatMode: settings.formatMode,
-      displayStyle: settings.displayStyle,
-      walmartEnabled: settings.walmartEnabled,
-      page: window.location.pathname
-    });
-    if (diagnostic !== walmartSettingsDiagnostic) {
-      walmartSettingsDiagnostic = diagnostic;
-      console.info("[CUP][Walmart] settings applied; scanning page", {
-        preferredFormat: settings.preferredFormat,
-        formatMode: settings.formatMode,
-        displayStyle: settings.displayStyle,
-        walmartEnabled: settings.walmartEnabled,
-        page: window.location.pathname,
-        extensionVersion: chrome.runtime.getManifest().version
-      });
-    }
-  }
-
   if (!adapter || !adapter.enabled(settings)) {
     stopAndClear();
     return;
@@ -426,13 +324,6 @@ function applySettings(settings: ExtensionSettings): void {
     stopAndClear();
     activeAdapter = adapter;
     resolveAutomaticFormat();
-    if (adapter === WALMART_ADAPTER) {
-      console.info("[CUP][Walmart] initial card scan", {
-        scopeCount: adapter.collectScopes(document).length,
-        page: window.location.pathname,
-        domInventory: walmartDomInventory()
-      });
-    }
     stopObserving = observeRetailerScopes({
       collectScopes: adapter.collectScopes,
       closestScope: adapter.closestScope,
@@ -445,13 +336,6 @@ function applySettings(settings: ExtensionSettings): void {
     resolveAutomaticFormat();
     processScopes(Array.from(knownScopes));
   }
-}
-
-if (adapterForPage() === WALMART_ADAPTER) {
-  console.info("[CUP][Walmart] bundle loaded", {
-    page: window.location.pathname,
-    extensionVersion: chrome.runtime.getManifest().version
-  });
 }
 
 subscribeSettings(applySettings);
