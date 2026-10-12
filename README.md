@@ -70,3 +70,5 @@ See the following documents for detailed behavior and development scope:
 - [Original implementation plan](docs/PLAN.md)
 - [Generic shopping-site design](docs/superpowers/specs/2026-09-23-generic-shopping-sites-design.md)
 - [Generic shopping-site implementation plan](docs/superpowers/plans/2026-09-23-generic-shopping-sites.md)
+- [Release and store submission guide](docs/RELEASE.md)
+- [Privacy policy](PRIVACY.md)

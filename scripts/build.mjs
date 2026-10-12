@@ -14,6 +14,7 @@ const outputRoot = path.join(projectRoot, "dist", browser);
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(path.join(outputRoot, "content"), { recursive: true });
 await mkdir(path.join(outputRoot, "popup"), { recursive: true });
+await mkdir(path.join(outputRoot, "icons"), { recursive: true });
 
 await build({
   entryPoints: {
@@ -31,6 +32,7 @@ await build({
 
 await Promise.all([
   cp(path.join(projectRoot, `manifests/${browser}.json`), path.join(outputRoot, "manifest.json")),
+  cp(path.join(projectRoot, "assets/icons"), path.join(outputRoot, "icons"), { recursive: true }),
   cp(path.join(projectRoot, "src/content/styles.css"), path.join(outputRoot, "content/styles.css")),
   cp(path.join(projectRoot, "src/popup/index.html"), path.join(outputRoot, "popup/index.html")),
   cp(path.join(projectRoot, "src/popup/popup.css"), path.join(outputRoot, "popup/popup.css"))

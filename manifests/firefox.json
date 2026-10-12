@@ -3,10 +3,22 @@
   "name": "Consistent Unit Price",
   "description": "Compare products with a consistent weight-based unit price.",
   "version": "0.1.0",
+  "homepage_url": "https://github.com/vikvic/consistent-unit-price",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": ["storage"],
   "action": {
     "default_title": "Consistent Unit Price",
-    "default_popup": "popup/index.html"
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
   },
   "content_scripts": [
     {
@@ -21,7 +33,10 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "consistent-unit-price@example.invalid",
+      "id": "consistent-unit-price@vikvic.github.io",
+      "data_collection_permissions": {
+        "required": ["none"]
+      },
       "strict_min_version": "109.0"
     }
   }
