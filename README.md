@@ -2,13 +2,11 @@
 
 Consistent Unit Price is a Chrome and Firefox extension that standardizes weight-based prices for faster, apples-to-apples shopping comparisons. It finds unit-price labels such as `$3.98/lb`, `90.7¢ per lb`, or `€2,40/kg` and displays them in one consistent format selected by the user.
 
-## Before and after
+## See it in action
 
 Shopping pages often mix formats such as dollars per pound and cents per ounce. Consistent Unit Price converts those values into the selected format and gives every comparable unit price the same enlarged blue styling—even when a value did not need conversion.
 
-| Before | After |
-| :---: | :---: |
-| ![Walmart product results mixing dollars per pound and cents per ounce before Consistent Unit Price](Before.png) | ![Walmart product results standardized to dollars per pound with consistent blue styling](After.png) |
+![Consistent Unit Price standardizing Walmart unit prices in Chrome](BeforeAfter.gif)
 
 ## What it does
 
