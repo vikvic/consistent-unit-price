@@ -10,7 +10,14 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "scripting"],
+  "optional_host_permissions": [
+    "https://*.amazon.com/*",
+    "https://*.walmart.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_title": "Consistent Unit Price",
     "default_popup": "popup/index.html",
@@ -18,16 +25,5 @@
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png"
     }
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://*.amazon.com/*",
-        "https://*.walmart.com/*"
-      ],
-      "js": ["content/index.js"],
-      "css": ["content/styles.css"],
-      "run_at": "document_idle"
-    }
-  ]
+  }
 }

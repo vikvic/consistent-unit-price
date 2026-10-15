@@ -12,6 +12,14 @@ import {
   subscribeSettings,
   updateSettings
 } from "../settings";
+import {
+  SUPPORTED_SITE_ACCESS,
+  activateSiteOnCurrentTab,
+  hasSiteAccess,
+  removeSiteAccess,
+  requestSiteAccess,
+  type SupportedSiteAccess
+} from "../site-permissions";
 
 function requiredElement<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -128,6 +136,83 @@ function applySettings(settings: ExtensionSettings): void {
   }
 }
 
+async function refreshPermissionControls(): Promise<void> {
+  const [amazonGranted, walmartGranted] = await Promise.all([
+    hasSiteAccess(SUPPORTED_SITE_ACCESS.amazon),
+    hasSiteAccess(SUPPORTED_SITE_ACCESS.walmart)
+  ]);
+  amazonToggle.checked = amazonGranted;
+  walmartToggle.checked = walmartGranted;
+}
+
+function synchronizeSiteAccess(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ type: "cup/synchronize-site-access" }, (response?: {
+      ok?: boolean;
+      message?: string;
+    }) => {
+      const error = chrome.runtime.lastError;
+      if (error) {
+        reject(new Error(error.message));
+        return;
+      }
+      if (!response?.ok) {
+        reject(new Error(response?.message ?? "Site access could not be synchronized."));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+async function changeSiteAccess(
+  site: SupportedSiteAccess,
+  toggle: HTMLInputElement
+): Promise<void> {
+  toggle.disabled = true;
+  settingsStatus.textContent = toggle.checked
+    ? `Requesting access to ${site.label}…`
+    : `Removing access to ${site.label}…`;
+
+  try {
+    if (toggle.checked) {
+      const granted = await requestSiteAccess(site);
+      if (!granted) {
+        toggle.checked = false;
+        await synchronizeSiteAccess();
+        settingsStatus.textContent = `${site.label} access was not granted.`;
+        return;
+      }
+
+      await synchronizeSiteAccess();
+      let activated = false;
+      try {
+        activated = await activateSiteOnCurrentTab(site);
+      } catch {
+        // Access remains enabled even if the current tab cannot be injected.
+      }
+      settingsStatus.textContent = activated
+        ? `${site.label} enabled on this page.`
+        : `${site.label} enabled. Open or reload a ${site.label} page.`;
+      return;
+    }
+
+    const removed = await removeSiteAccess(site);
+    if (!removed && await hasSiteAccess(site)) {
+      toggle.checked = true;
+      settingsStatus.textContent = `${site.label} access could not be removed.`;
+      return;
+    }
+    await synchronizeSiteAccess();
+    settingsStatus.textContent = `${site.label} disabled.`;
+  } catch {
+    toggle.checked = await hasSiteAccess(site).catch(() => !toggle.checked);
+    settingsStatus.textContent = `${site.label} access could not be changed.`;
+  } finally {
+    toggle.disabled = false;
+  }
+}
+
 async function persistSettings(patch: Partial<ExtensionSettings>): Promise<void> {
   settingsStatus.textContent = "Saving…";
   try {
@@ -165,11 +250,11 @@ displayStyleOptions.addEventListener("change", (event) => {
 });
 
 amazonToggle.addEventListener("change", () => {
-  void persistSettings({ amazonEnabled: amazonToggle.checked });
+  void changeSiteAccess(SUPPORTED_SITE_ACCESS.amazon, amazonToggle);
 });
 
 walmartToggle.addEventListener("change", () => {
-  void persistSettings({ walmartEnabled: walmartToggle.checked });
+  void changeSiteAccess(SUPPORTED_SITE_ACCESS.walmart, walmartToggle);
 });
 
 calculatorForm.addEventListener("submit", (event) => {
@@ -181,7 +266,10 @@ const unsubscribe = subscribeSettings(applySettings);
 window.addEventListener("unload", unsubscribe, { once: true });
 
 getSettings()
-  .then(applySettings)
+  .then(async (settings) => {
+    applySettings(settings);
+    await refreshPermissionControls();
+  })
   .catch(() => {
     applySettings({ ...DEFAULT_SETTINGS });
     settingsStatus.textContent = "Stored settings could not be loaded; defaults are shown.";

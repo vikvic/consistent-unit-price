@@ -12,8 +12,8 @@ export const DEFAULT_SETTINGS: Readonly<ExtensionSettings> = {
   preferredFormat: "dollars-per-pound",
   formatMode: "manual",
   displayStyle: "overlay",
-  amazonEnabled: true,
-  walmartEnabled: true
+  amazonEnabled: false,
+  walmartEnabled: false
 };
 
 function isDisplayFormat(value: unknown): value is DisplayFormat {

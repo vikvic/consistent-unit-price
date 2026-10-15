@@ -18,6 +18,7 @@ await mkdir(path.join(outputRoot, "icons"), { recursive: true });
 
 await build({
   entryPoints: {
+    "background": path.join(projectRoot, "src/background.ts"),
     "content/index": path.join(projectRoot, "src/content/index.ts"),
     "popup/popup": path.join(projectRoot, "src/popup/popup.ts")
   },

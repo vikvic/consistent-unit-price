@@ -11,7 +11,14 @@
     "96": "icons/icon-96.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "scripting"],
+  "optional_host_permissions": [
+    "https://*.amazon.com/*",
+    "https://*.walmart.com/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
   "action": {
     "default_title": "Consistent Unit Price",
     "default_popup": "popup/index.html",
@@ -20,17 +27,6 @@
       "32": "icons/icon-32.png"
     }
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://*.amazon.com/*",
-        "https://*.walmart.com/*"
-      ],
-      "js": ["content/index.js"],
-      "css": ["content/styles.css"],
-      "run_at": "document_idle"
-    }
-  ],
   "browser_specific_settings": {
     "gecko": {
       "id": "consistent-unit-price@vikvic.github.io",

@@ -26,6 +26,8 @@ For example, a page that mixes `90.7¢/lb` and `$1.77/lb` can display both as lo
 
 Amazon.com and Walmart.com use dedicated readers designed around their product pages, search results, variants, and dynamically loaded listings.
 
+After installation, open the extension popup and select **Enable on Amazon** or **Enable on Walmart**. The browser asks for access to that retailer only. Once approved, the extension activates on the current matching page and automatically runs on future pages for that retailer. Turning a site off removes its browser permission and stops processing that site.
+
 Generic shopping-site support is the next planned expansion. Users will be able to grant access to an individual store, after which the extension will look for explicit visible expressions containing:
 
 1. A currency symbol or currency code.
@@ -55,7 +57,7 @@ The extension changes only its presentation of supported unit-price labels. It d
 
 ## Privacy and permissions
 
-Settings and enabled-site permissions are stored locally in the browser. The extension does not use a server, analytics service, account system, or AI service, and it does not transmit scanned page text or browsing history.
+Settings and explicitly approved site permissions are stored locally in the browser. Amazon and Walmart access is optional and requested separately from the popup. The extension does not use a server, analytics service, account system, or AI service, and it does not transmit scanned page text or browsing history.
 
 Amazon and Walmart have dedicated site controls. Generic stores will use optional per-site access by default, with an advanced all-sites option for users who explicitly choose it.
 

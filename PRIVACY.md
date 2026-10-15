@@ -6,7 +6,7 @@ Consistent Unit Price does not collect, transmit, sell, or share personal data.
 
 ## Information processed locally
 
-The extension reads visible product and unit-price text on supported Amazon.com and Walmart.com pages so it can identify explicit weight-based unit prices and display them in the format selected by the user. This processing happens entirely inside the browser.
+After the user explicitly grants access to Amazon or Walmart, the extension reads visible product and unit-price text on that retailer's pages so it can identify explicit weight-based unit prices and display them in the format selected by the user. This processing happens entirely inside the browser.
 
 The extension stores the following preferences locally through the browser's extension storage:
 
@@ -32,7 +32,7 @@ The extension does not use a remote server, analytics provider, advertising serv
 
 ## Permissions
 
-The `storage` permission saves extension preferences locally. Access to Amazon.com and Walmart.com is used only to recognize and restyle explicit weight-based unit-price labels on those pages.
+The `storage` permission saves extension preferences locally. The `scripting` permission installs or removes the converter after a user changes a site-access control. Amazon.com and Walmart.com are optional site permissions requested separately from the popup and used only to recognize and restyle explicit weight-based unit-price labels on the approved retailer's pages.
 
 ## Changes
 

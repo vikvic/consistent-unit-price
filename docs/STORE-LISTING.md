@@ -42,9 +42,13 @@ The extension's single purpose is to recognize explicit weight-based unit prices
 
 Stores the user's preferred unit-price format, format mode, display style, and enabled retailer settings locally in the browser. No stored setting is transmitted.
 
+### scripting
+
+Registers or removes the local conversion content script after the user grants or revokes access to Amazon or Walmart. It is also used to activate the converter immediately on an already-open approved retailer page. No remote code is downloaded or executed.
+
 ### Amazon.com and Walmart.com site access
 
-Allows the content script to read visible product and unit-price text and to add or restyle standardized unit-price labels on supported retailer pages. The extension does not read credentials, checkout information, or payment details, and it does not transmit page contents.
+Amazon and Walmart access is optional and requested separately when the user enables a retailer in the popup. Once approved, it allows the content script to read visible product and unit-price text and to add or restyle standardized unit-price labels on that retailer's pages. Disabling a retailer removes its site permission. The extension does not read credentials, checkout information, or payment details, and it does not transmit page contents.
 
 ## Data-use answers
 
@@ -65,17 +69,17 @@ Suggested functional review:
 
 1. Install the extension and open `https://www.walmart.com/search?q=shrimp`.
 2. Open the extension popup.
-3. Select `Dollars per pound`, select `Overlay retailer unit price`, and leave Walmart enabled.
-4. Reload the page if it was already open before installation.
+3. Enable Walmart and approve the browser's Walmart access prompt.
+4. Select `Dollars per pound` and select `Overlay retailer unit price`.
 5. Unit-price values such as cents per ounce should be displayed as blue dollars-per-pound values. Already matching dollars-per-pound values receive the same styling.
-6. Switch Walmart off in the popup to disable its page processing.
+6. Switch Walmart off in the popup and confirm its site permission is removed.
 7. The manual calculator in the popup can be reviewed without visiting a retailer page.
 
 The build uses TypeScript and esbuild. Generated JavaScript is bundled but not intentionally obfuscated. Source maps are included in the extension package, and the original TypeScript source is included in the separate source archive.
 
 ## Chrome reviewer notes
 
-No account or test credentials are required. Use the same Walmart review procedure above. The extension's Amazon and Walmart host access is required only for visible unit-price recognition and presentation.
+No account or test credentials are required. Use the same Walmart review procedure above. Amazon and Walmart permissions are optional and are used only for visible unit-price recognition and presentation after the reviewer enables the corresponding retailer.
 
 ## Release notes for 0.1.0
 

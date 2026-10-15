@@ -38,16 +38,20 @@
         </fieldset>
 
         <fieldset class="cup-toggle-group">
-          <legend>Enabled sites</legend>
+          <legend>Site access</legend>
           <label class="cup-toggle" for="amazon-enabled">
             <input id="amazon-enabled" type="checkbox">
-            <span>Amazon</span>
+            <span>Enable on Amazon</span>
           </label>
           <label class="cup-toggle" for="walmart-enabled">
             <input id="walmart-enabled" type="checkbox">
-            <span>Walmart</span>
+            <span>Enable on Walmart</span>
           </label>
         </fieldset>
+
+        <p class="cup-popup__hint">
+          Each site is processed only after you approve the browser's access request.
+        </p>
 
         <p id="settings-status" class="cup-popup__status" role="status" aria-live="polite"></p>
       </section>

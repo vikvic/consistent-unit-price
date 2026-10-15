@@ -74,9 +74,12 @@ Run each on both stores and all three surfaces when a representative listing is 
 This checklist is required to complete Milestone 1, not a deferred release-only check. For each of desktop Chrome and desktop Firefox, record the full browser name and version, then:
 
 1. Open a fresh signed-out Amazon product page, search page, and category page; run AMZ-P-01, AMZ-S-01, and AMZ-C-01.
+   Before the first Amazon case, enable Amazon in the extension popup and approve the browser's site-access prompt.
 2. Change the Amazon selected size and confirm price and quantity move together before calculating.
 3. Open a fresh signed-out Walmart product page, search page, and category page; run WMT-P-01, WMT-S-01, and WMT-C-01.
+   Before the first Walmart case, enable Walmart in the extension popup and approve the browser's site-access prompt.
 4. Change the Walmart pack variant and confirm the checked state, title, current price, and quantity remain associated.
 5. Find a live clipped-coupon offer on each store and confirm the extension ignores the coupon while retaining the ordinary one-time price.
 6. Confirm the extension rejects a fluid-ounce product, a missing-weight product, and an ambiguous option-family card with the exact reason strings above.
 7. Confirm no extracted or logged data includes account, address, store, ZIP code, order, delivery, or other personalized page content.
+8. Disable each retailer from the popup, confirm its browser site permission is removed, and reload a matching page to confirm the converter no longer runs.

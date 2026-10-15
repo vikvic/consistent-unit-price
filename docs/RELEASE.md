@@ -30,6 +30,8 @@ The Chrome and Firefox archives contain `manifest.json` at the archive root. The
 
 After approval, install the extension from its Firefox Add-ons listing. That signed installation persists when Firefox restarts.
 
+After installation or upgrade, open the extension popup and explicitly enable Amazon and Walmart as needed. Each control triggers the browser's permission prompt for that retailer only.
+
 ## Chrome Web Store
 
 1. Sign in to https://chrome.google.com/webstore/devconsole.
@@ -39,6 +41,8 @@ After approval, install the extension from its Firefox Add-ons listing. That sig
 5. Upload the prepared icon, screenshots, and promotional image from `store-assets`.
 6. Choose the intended visibility and regions.
 7. Complete Google's developer agreement, privacy declarations, and final submission.
+
+After installation or upgrade, open the extension popup and explicitly enable Amazon and Walmart as needed. Each control triggers the browser's permission prompt for that retailer only.
 
 ## Publish an update
 

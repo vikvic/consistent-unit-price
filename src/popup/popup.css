@@ -172,6 +172,10 @@ body {
   margin: 0;
 }
 
+.cup-toggle:has(input:disabled) {
+  opacity: 0.65;
+}
+
 .cup-popup button {
   min-height: 2.5rem;
   padding: 0.5rem 0.85rem;

@@ -338,5 +338,10 @@ function applySettings(settings: ExtensionSettings): void {
   }
 }
 
-subscribeSettings(applySettings);
-getSettings().then(applySettings).catch(() => applySettings({ ...DEFAULT_SETTINGS }));
+const CONTENT_SCRIPT_MARKER = "data-consistent-unit-price-loaded";
+
+if (!document.documentElement.hasAttribute(CONTENT_SCRIPT_MARKER)) {
+  document.documentElement.setAttribute(CONTENT_SCRIPT_MARKER, "true");
+  subscribeSettings(applySettings);
+  getSettings().then(applySettings).catch(() => applySettings({ ...DEFAULT_SETTINGS }));
+}
