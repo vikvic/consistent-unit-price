@@ -1,6 +1,6 @@
 # Store listing copy
 
-Use this copy for the first public Chrome Web Store and Firefox Add-ons release of version 0.1.0.
+Use this copy for the Chrome Web Store and Firefox Add-ons release of version 0.1.1.
 
 ## Identity
 
@@ -80,6 +80,10 @@ The build uses TypeScript and esbuild. Generated JavaScript is bundled but not i
 ## Chrome reviewer notes
 
 No account or test credentials are required. Use the same Walmart review procedure above. Amazon and Walmart permissions are optional and are used only for visible unit-price recognition and presentation after the reviewer enables the corresponding retailer.
+
+## Release notes for 0.1.1
+
+Amazon and Walmart access is now requested separately from the extension popup instead of being granted automatically at installation. Approved retailer scripts persist across browser restarts, disabling a retailer removes its permission, and the README now includes an animated Chrome demonstration.
 
 ## Release notes for 0.1.0
 

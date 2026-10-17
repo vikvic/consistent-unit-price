@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Consistent Unit Price",
   "description": "Compare products with a consistent weight-based unit price.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage_url": "https://github.com/vikvic/consistent-unit-price",
   "icons": {
     "16": "icons/icon-16.png",
